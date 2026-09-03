@@ -1,0 +1,20 @@
+{
+  "name": "racer-3d",
+  "version": "1.0.0",
+  "description": "极速飞车 3D：QQ飞车风格卡丁车竞速。漂移集氮、氮气喷射、空喷、落地喷，三大主题赛道（沙漠 / 森林 / 天空之城），个人挑战赛（4 AI）与联机匹配（≥2 人开局），结算领奖台。Three.js 渲染 + Node WebSocket 联机，纯前端零构建。",
+  "keywords": ["racing", "kart", "3d", "three.js", "drift", "nitro", "websocket"],
+  "license": "MIT",
+  "main": "server.js",
+  "directories": { "lib": "lib" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-all.js",
+    "test:protocol": "node js/protocol.test.js",
+    "test:track": "node js/track.test.js",
+    "test:car": "node js/car.test.js",
+    "test:server": "node test-server.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

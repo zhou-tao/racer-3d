@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>极速飞车 3D</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏎️</text></svg>" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- 3D 舞台 -->
+<div id="stage"></div>
+<canvas id="speedLines"></canvas>
+
+<!-- 比赛 HUD -->
+<div id="hud" class="hidden">
+  <div id="mapWrap">
+    <canvas id="minimap" width="196" height="196"></canvas>
+    <div id="mapLabel">全景地图</div>
+  </div>
+
+  <div id="topCenter">
+    <div id="themeTag"></div>
+    <div class="tc-row">
+      <span class="tc-chip">圈 <b id="lapNum">1</b>/<i id="lapTotal">3</i></span>
+      <span class="tc-chip big"><b id="posNum">1</b>/<i id="posTotal">5</i></span>
+      <span class="tc-chip" id="timer">00:00.00</span>
+    </div>
+  </div>
+
+  <div id="standings"></div>
+
+  <div id="speedo">
+    <canvas id="speedArc" width="130" height="74"></canvas>
+    <div class="spd"><span id="speedNum">0</span><em>km/h</em></div>
+  </div>
+
+  <div id="nitroBox">
+    <div id="nitroPips"></div>
+    <div id="nitroBar"><div id="nitroFill"></div></div>
+    <div class="hint">漂移集氮 · <b>Space</b> 喷射</div>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="countdown"></div>
+  <div id="wrongway" class="hidden">⚠ 逆行！掉头</div>
+  <div id="banner" class="hidden"><div class="b1"></div><div class="b2"></div></div>
+  <div id="controlsHint">↑/W 油门（空中/落地/漂移结束时点按=空喷·落地喷·漂移喷） · ↓/S 刹车 · ←→/AD 转向 · Shift 漂移 · Space 氮气 · R 复位</div>
+</div>
+
+<!-- 主菜单 -->
+<main id="screenMain" class="screen">
+  <div class="flag-strip top"></div>
+  <h1 class="logo">极速飞车<span>3D</span></h1>
+  <p class="tagline">DRIFT · NITRO · TURBO —— 漂移集氮 · 空喷落地喷 · 三大主题赛道</p>
+
+  <section class="profile-bar">
+    <input id="nameInput" maxlength="12" spellcheck="false" title="昵称" />
+    <div id="colorSwatches" title="选择车漆"></div>
+  </section>
+
+  <section class="mode-row">
+    <button type="button" class="mode-card" id="btnSolo">
+      <span class="m-emoji">🏁</span>
+      <span class="m-name">个人挑战赛</span>
+      <span class="m-desc">你 + 4 台电脑车手 · 三圈决胜负</span>
+    </button>
+    <button type="button" class="mode-card" id="btnOnline">
+      <span class="m-emoji">🌐</span>
+      <span class="m-name">联机匹配</span>
+      <span class="m-desc">创建/加入房间 · ≥2 人即可开局</span>
+    </button>
+  </section>
+
+  <section class="help-card">
+    <b>操作</b>：↑/W 油门 · ↓/S 刹车 · ←→/AD 转向 · <b>Shift</b> 漂移（集氮，撞墙=失败）·
+    <b>Space/Ctrl</b> 氮气喷射 · 空中<b>点按 ↑</b>=空喷 · 落地瞬间<b>点按 ↑</b>=落地喷 ·
+    漂移结束<b>点按 ↑</b>=漂移喷 · R 复位
+  </section>
+  <div class="flag-strip bottom"></div>
+</main>
+
+<!-- 离线主题选择 -->
+<main id="screenOffline" class="screen hidden">
+  <h2 class="stitle">选择赛道主题</h2>
+  <section class="theme-row">
+    <button type="button" class="theme-card" data-t="desert">
+      <canvas class="t-bg" width="300" height="140"></canvas>
+      <canvas class="t-map" width="86" height="86"></canvas>
+      <span class="t-info">
+        <span class="t-emoji">🏜️</span>
+        <span class="t-name">沙漠灰</span>
+        <span class="t-desc">砂岩古城 · 石拱门与木箱 · 灰金赛道</span>
+      </span>
+    </button>
+    <button type="button" class="theme-card" data-t="forest">
+      <canvas class="t-bg" width="300" height="140"></canvas>
+      <canvas class="t-map" width="86" height="86"></canvas>
+      <span class="t-info">
+        <span class="t-emoji">🏮</span>
+        <span class="t-name">新年广场</span>
+        <span class="t-desc">瑞雪红灯笼 · 新春横幅 · 雪松回旋弯</span>
+      </span>
+    </button>
+    <button type="button" class="theme-card" data-t="sky">
+      <canvas class="t-bg" width="300" height="140"></canvas>
+      <canvas class="t-map" width="86" height="86"></canvas>
+      <span class="t-info">
+        <span class="t-emoji">☁️</span>
+        <span class="t-name">天空之城</span>
+        <span class="t-desc">云海浮岛 · 水晶与镀金尖塔 · 大落差飞坡</span>
+      </span>
+    </button>
+  </section>
+  <button type="button" class="ghost-btn" id="btnBackMain1">← 返回</button>
+</main>
+
+<!-- 联机大厅 -->
+<main id="screenOnline" class="screen hidden">
+  <h2 class="stitle">联机大厅</h2>
+  <p class="lobby-status" id="lobbyStatus">正在连接服务器…</p>
+  <section id="lobbyList" class="lobby-list"></section>
+  <section id="themeRow" class="theme-row small hidden">
+    <button type="button" data-t="desert">🏜️ 沙漠灰</button>
+    <button type="button" data-t="forest">🏮 新年广场</button>
+    <button type="button" data-t="sky">☁️ 天空之城</button>
+  </section>
+  <div class="lobby-actions">
+    <button type="button" class="primary-btn" id="btnStartOnline" disabled>等待玩家（0/2）</button>
+    <button type="button" class="ghost-btn" id="btnBackMain2">← 退出联机</button>
+  </div>
+</main>
+
+<!-- 全屏加载 -->
+<div id="loading" class="hidden">
+  <div class="ld-flag"></div>
+  <div class="ld-core">
+    <div class="ld-badge">🏁</div>
+    <div class="ld-title">LOADING</div>
+    <div class="ld-sub" id="ldStage">正在生成赛道 · 布置场景</div>
+    <div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div>
+    <div class="ld-pct"><span id="ldPct">0%</span></div>
+    <div class="ld-tip" id="ldTip"></div>
+  </div>
+  <div class="ld-flag flip"></div>
+</div>
+
+<!-- 结算 -->
+<main id="screenResults" class="screen hidden results">
+  <section class="result-panel">
+    <h2 class="stitle">🏁 比赛结果</h2>
+    <div id="resultList" class="result-list"></div>
+    <div class="lobby-actions">
+      <button type="button" class="primary-btn" id="btnAgain">再来一局</button>
+      <button type="button" class="primary-btn hidden" id="btnAgainOnline">再来一局</button>
+      <button type="button" class="ghost-btn" id="btnBackMain3">主菜单</button>
+    </div>
+  </section>
+</main>
+
+<script src="lib/three.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/protocol.js"></script>
+<script src="js/track.js"></script>
+<script src="js/car.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/podium.js"></script>
+<script src="js/net.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
